@@ -63,18 +63,15 @@ public class PlayerSession {
 		took = System.currentTimeMillis() - start;
 		System.out.println("took: " + took);
 		
-		System.out.println(sessionsThaNODnl.load(ByteLongTranslator.bytes(12345)));
+//		System.out.println(sessionsThaNODnl.load(ByteLongTranslator.bytes(12345)));
 		
-		// System.out.println(Store.load(client, "gamelink", "PlayerSessions",
-		// "ThaNODnl", ByteLongTranslator.bytes(1273354838512L),
-		// PlayerSession.class));
+//		System.out.println(Store.load(client, "gamelink", "PlayerSessions", "ThaNODnl", ByteLongTranslator.bytes(1273354838512L), PlayerSession.class));
 
-		// PlayerSession t1 = new PlayerSession("bc.mybad.nl:48801", "1");
-		// System.out.println(t1);
-		// List<Column> tocas = Store.ObjectToColumn(t1);
-		// PlayerSession t2 = Store.ColumnsToObject(PlayerSession.class, tocas,
-		// new byte[0]);
-		// System.out.println(t2);
+//		PlayerSession t1 = new PlayerSession("bc.mybad.nl:48801", "1");
+//		System.out.println(t1);
+//		List<Column> tocas = Store.ObjectToColumn(t1);
+//		PlayerSession t2 = Store.ColumnsToObject(PlayerSession.class, tocas, new byte[0]);
+//		System.out.println(t2);
 
 //		for (int i = 0; i < 50; i++) {
 //			PlayerSession t = new PlayerSession("bc.mybad.nl:48801", "" + i);

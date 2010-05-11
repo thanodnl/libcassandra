@@ -22,16 +22,21 @@
 		</plugins>
 	</build>
 	<dependencies>
-		<dependency>
+		<!--<dependency>
 			<groupId>nl.thanod</groupId>
 			<artifactId>libthrift</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
+		</dependency>-->
 		<dependency>
 			<groupId>nl.thanod.annotations</groupId>
 			<artifactId>spi</artifactId>
 			<version>1.0.0</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-nop</artifactId>
+			<version>1.6.0-RC0</version>
 		</dependency>
 	</dependencies>
 </project>
