@@ -1,12 +1,9 @@
 package nl.thanod;
 
 import java.io.InvalidClassException;
+import java.util.List;
 
 import nl.thanod.cassandra.Key;
-import nl.thanod.cassandra.ObjectStore;
-import nl.thanod.cassandra.Store;
-import nl.thanod.cassandra.SuperColumnObjectStore;
-import nl.thanod.cassandra.bytes.ByteLongTranslator;
 
 import org.apache.cassandra.thrift.*;
 import org.apache.thrift.TException;
@@ -53,15 +50,20 @@ public class PlayerSession {
 		TProtocol proto = new TBinaryProtocol(tr);
 		Cassandra.Client client = new Cassandra.Client(proto);
 		tr.open();
-
-		long start, took;
-		start = System.currentTimeMillis();
-		ObjectStore<PlayerSession> sessionsThaNODnl = new SuperColumnObjectStore<PlayerSession>(client, "gamelink", "PlayerSessions", "ThaNODnl", PlayerSession.class);
-		for (PlayerSession s : sessionsThaNODnl) {
-			System.out.println(s);
-		}
-		took = System.currentTimeMillis() - start;
-		System.out.println("took: " + took);
+		
+		ColumnParent parent= new ColumnParent("OnlinePlayers");
+		SlicePredicate predicate = new SlicePredicate();
+		predicate.slice_range = new SliceRange(new byte[0], new byte[0], false, 100);
+		List<ColumnOrSuperColumn> columns = client.get_slice("gamelink", "specialist_nl", parent, predicate, ConsistencyLevel.ONE);
+		System.out.println(columns);
+//		long start, took;
+//		start = System.currentTimeMillis();
+//		ObjectStore<PlayerSession> sessionsThaNODnl = new SuperColumnObjectStore<PlayerSession>(client, "gamelink", "PlayerSessions", "ThaNODnl", PlayerSession.class);
+//		for (PlayerSession s : sessionsThaNODnl) {
+//			System.out.println(s);
+//		}
+//		took = System.currentTimeMillis() - start;
+//		System.out.println("took: " + took);
 		
 //		System.out.println(sessionsThaNODnl.load(ByteLongTranslator.bytes(12345)));
 		

@@ -25,7 +25,6 @@ public class OnlinePlayer {
 	}
 	
 	public static void main(String... args) {
-		OnlinePlayer player = new OnlinePlayer("ThaNODnl","bc.mybad.nl:48801");
-		System.out.println(player);
+		
 	}
 }
