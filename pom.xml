@@ -39,4 +39,10 @@
 			<version>1.6.0-RC0</version>
 		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>thanod</id>
+			<url>http://maven.thanod.nl</url>
+		</repository>
+	</repositories>
 </project>
