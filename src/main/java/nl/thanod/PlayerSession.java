@@ -1,9 +1,13 @@
 package nl.thanod;
 
 import java.io.InvalidClassException;
-import java.util.List;
+import java.util.UUID;
 
 import nl.thanod.cassandra.Key;
+import nl.thanod.cassandra.ObjectStore;
+import nl.thanod.cassandra.Store;
+import nl.thanod.cassandra.SuperColumnObjectStore;
+import nl.thanod.cassandra.bytes.ByteUUIDTranslator;
 
 import org.apache.cassandra.thrift.*;
 import org.apache.thrift.TException;
@@ -14,10 +18,11 @@ import org.apache.thrift.transport.TTransport;
 
 public class PlayerSession {
 	@Key
-	private transient final long key;
+	private transient final UUID key;
 	private String firstseen;
 	private String lastseen;
 	private final String server;
+	private final UUID server_session;
 	private final String team;
 
 	@Override
@@ -30,8 +35,9 @@ public class PlayerSession {
 	}
 
 	public PlayerSession(String server, String team) {
-		this.key = System.currentTimeMillis();
-		this.lastseen = this.firstseen = Long.toString(this.key);
+		this.key = TimedUUIDGenerator.getTimeBasedUUID();
+		this.server_session = TimedUUIDGenerator.getTimeBasedUUID();
+		this.lastseen = this.firstseen = Long.toString(System.currentTimeMillis());
 		this.server = server;
 		this.team = team;
 	}
@@ -50,38 +56,21 @@ public class PlayerSession {
 		TProtocol proto = new TBinaryProtocol(tr);
 		Cassandra.Client client = new Cassandra.Client(proto);
 		tr.open();
-		
-		ColumnParent parent= new ColumnParent("OnlinePlayers");
-		SlicePredicate predicate = new SlicePredicate();
-		predicate.slice_range = new SliceRange(new byte[0], new byte[0], false, 100);
-		List<ColumnOrSuperColumn> columns = client.get_slice("gamelink", "specialist_nl", parent, predicate, ConsistencyLevel.ONE);
-		System.out.println(columns);
-//		long start, took;
-//		start = System.currentTimeMillis();
-//		ObjectStore<PlayerSession> sessionsThaNODnl = new SuperColumnObjectStore<PlayerSession>(client, "gamelink", "PlayerSessions", "ThaNODnl", PlayerSession.class);
-//		for (PlayerSession s : sessionsThaNODnl) {
-//			System.out.println(s);
+
+		PlayerSession t = new PlayerSession("bc.mybad.nl:48801", "1");
+		for (int i = 1000; i < 20000; i++)
+			Store.store(client, "gamelink", "PlayerSessions", "Player" + i, ConsistencyLevel.ZERO, t);
+
+		ObjectStore<PlayerSession> thanod = new SuperColumnObjectStore<PlayerSession>(client, "gamelink", "PlayerSessions", "ThaNODnl", PlayerSession.class);
+
+		//		PlayerSession t = new PlayerSession("bc.mybad.nl:48801","1");
+		//		thanod.store(t);
+
+		//		UUID uuid = UUID.fromString("5a7214a0-61cd-11df-8e45-00236c001b40");
+		//		System.out.println(thanod.load(ByteUUIDTranslator.bytes(uuid)));
+//		for (PlayerSession p : thanod) {
+//			System.out.println(p);
 //		}
-//		took = System.currentTimeMillis() - start;
-//		System.out.println("took: " + took);
-		
-//		System.out.println(sessionsThaNODnl.load(ByteLongTranslator.bytes(12345)));
-		
-//		System.out.println(Store.load(client, "gamelink", "PlayerSessions", "ThaNODnl", ByteLongTranslator.bytes(1273354838512L), PlayerSession.class));
-
-//		PlayerSession t1 = new PlayerSession("bc.mybad.nl:48801", "1");
-//		System.out.println(t1);
-//		List<Column> tocas = Store.ObjectToColumn(t1);
-//		PlayerSession t2 = Store.ColumnsToObject(PlayerSession.class, tocas, new byte[0]);
-//		System.out.println(t2);
-
-//		for (int i = 0; i < 50; i++) {
-//			PlayerSession t = new PlayerSession("bc.mybad.nl:48801", "" + i);
-//			Store.store(client, "gamelink", "PlayerSessions", "ThaNODnl", ConsistencyLevel.ONE, t);
-//			Thread.sleep(1000);
-//			t.seen();
-//		}
-
 	}
 
 }

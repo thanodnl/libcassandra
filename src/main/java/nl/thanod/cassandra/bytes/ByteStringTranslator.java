@@ -51,4 +51,9 @@ public class ByteStringTranslator implements ByteTranslator {
 		return new String(bytes, ENCODING);
 	}
 
+	@Override
+	public byte[] getBytes(Object o) {
+		return bytes((String)o);
+	}
+
 }

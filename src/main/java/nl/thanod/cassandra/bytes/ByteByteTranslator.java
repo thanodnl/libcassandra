@@ -40,4 +40,9 @@ public class ByteByteTranslator implements ByteTranslator {
 		throw new RuntimeException("Unable to set " + f.getDeclaringClass().getCanonicalName() + "." + f.getName(), thing);
 	}
 
+	@Override
+	public byte[] getBytes(Object o) {
+		return (byte[])o;
+	}
+
 }

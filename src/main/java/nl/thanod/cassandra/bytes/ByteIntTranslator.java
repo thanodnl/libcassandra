@@ -60,5 +60,10 @@ public class ByteIntTranslator implements ByteTranslator {
 		return i;
 	}
 
+	@Override
+	public byte[] getBytes(Object o) {
+		return bytes((Integer)o);
+	}
+
 
 }

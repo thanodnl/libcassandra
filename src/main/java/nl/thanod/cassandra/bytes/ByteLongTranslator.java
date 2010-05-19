@@ -68,4 +68,9 @@ public class ByteLongTranslator implements ByteTranslator {
 		l |= (long)(bytes[7] & 0xFF) << 0;
 		return l;
 	}
+
+	@Override
+	public byte[] getBytes(Object o) {
+		return bytes((Long)o);
+	}
 }

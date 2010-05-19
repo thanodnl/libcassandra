@@ -47,4 +47,9 @@ public class ByteFloatTranslator implements ByteTranslator {
 	public static float make(byte[] bytes) {
 		return Float.intBitsToFloat(ByteIntTranslator.make(bytes));
 	}
+
+	@Override
+	public byte[] getBytes(Object o) {
+		return bytes((Float)o);
+	}
 }

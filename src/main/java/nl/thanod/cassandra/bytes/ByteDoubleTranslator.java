@@ -41,11 +41,16 @@ public class ByteDoubleTranslator implements ByteTranslator {
 	}
 
 	public static byte[] bytes(double d) {
-		return ByteStringTranslator.bytes(Double.toString(d));
+		return ByteLongTranslator.bytes(Double.doubleToLongBits(d));
 	}
 
 	public static double make(byte[] bytes) {
-		return Double.parseDouble(ByteStringTranslator.make(bytes));
+		return Double.longBitsToDouble(ByteLongTranslator.make(bytes));
+	}
+
+	@Override
+	public byte[] getBytes(Object o) {
+		return bytes((Long)o);
 	}
 
 }

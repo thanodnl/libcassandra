@@ -1,7 +1,9 @@
 package nl.thanod.cassandra;
 
 import java.io.InvalidClassException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -18,10 +20,16 @@ import org.apache.thrift.TException;
 public class Store {
 	public static final Charset STRING_ENCODING = Charset.forName("UTF-8");
 
-	public static <T> T ColumnsToObject(Class<T> clazz, Iterable<Column> columns, byte[] key) throws InstantiationException, IllegalAccessException, InvalidClassException {
+	public static <T> T ColumnsToObject(Class<T> clazz, Iterable<Column> columns, byte[] key) throws InstantiationException, IllegalAccessException, InvalidClassException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
 		if (columns == null)
 			return null;
-		T o = clazz.newInstance();
+		Constructor<T> con = clazz.getDeclaredConstructor();
+		if (con == null)
+			return null;
+		if (!con.isAccessible())
+			con.setAccessible(true);
+		T o = con.newInstance();
+//		T o = clazz.newInstance();
 		for (Field f : clazz.getDeclaredFields()) {
 			if ((f.getModifiers() & Modifier.TRANSIENT) == Modifier.TRANSIENT)
 				continue;
@@ -40,6 +48,25 @@ public class Store {
 
 	public static String getFieldFullName(Field f) {
 		return f.getDeclaringClass() + "." + f.getName();
+	}
+
+	public static <T> T load(Client client, String keyspace, String column_family, byte[] key, Class<T> type) {
+		try {
+			ColumnParent parent = new ColumnParent(column_family);
+			SlicePredicate predicate = new SlicePredicate();
+			predicate.column_names = new LinkedList<byte[]>();
+			for (Field f : type.getDeclaredFields())
+				if ((f.getModifiers() & Modifier.TRANSIENT) != Modifier.TRANSIENT)
+					predicate.column_names.add(ByteStringTranslator.bytes(f.getName()));
+			List<ColumnOrSuperColumn> loaded = client.get_slice(keyspace, ByteStringTranslator.make(key), parent, predicate, ConsistencyLevel.ONE);
+			List<Column> columns = new LinkedList<Column>();
+			for (ColumnOrSuperColumn c : loaded)
+				columns.add(c.column);
+			return ColumnsToObject(type, columns, key);
+		} catch (Throwable ball) {
+			ball.printStackTrace();
+			return null;
+		}
 	}
 
 	public static <T> T load(Client client, String keyspace, String column_fammily, String key, byte[] super_column, Class<T> type) {
@@ -63,7 +90,7 @@ public class Store {
 		throw new RuntimeException("Was not able to load an instance of " + type.getCanonicalName(), thing);
 	}
 
-	public static <T> T load(SuperColumn super_column, Class<T> type) throws InvalidClassException, InstantiationException, IllegalAccessException {
+	public static <T> T load(SuperColumn super_column, Class<T> type) throws InvalidClassException, InstantiationException, IllegalAccessException, SecurityException, IllegalArgumentException, NoSuchMethodException, InvocationTargetException {
 		return ColumnsToObject(type, super_column.columns, super_column.name);
 	}
 
@@ -83,36 +110,44 @@ public class Store {
 		return list;
 	}
 
-	public static void store(Cassandra.Client client, String keyspace, String column_family, ConsistencyLevel consistency_level, Object... os) throws InvalidRequestException, UnavailableException, TimedOutException, TException {
-		Map<String, List<ColumnOrSuperColumn>> cfmap = new TreeMap<String, List<ColumnOrSuperColumn>>();
-		for (Object o : os) {
-			Class<?> clazz = o.getClass();
-			Field key = getKeyField(clazz);
-			List<Column> columns = ObjectToColumn(o);
-			if (key == null)
-				throw new RuntimeException("No key defined in " + clazz.getCanonicalName());
-			if (!key.isAccessible())
-				key.setAccessible(true);
-			if (key.getType().equals(String.class))
-				throw new RuntimeException("Due to limits of the current cassandra thrift api the key " + getFieldFullName(key) + " has to be from type " + String.class);
-			try {
-				String k = (String) key.get(o);
-				List<ColumnOrSuperColumn> list = cfmap.get(k);
-				if (list == null) {
-					list = new LinkedList<ColumnOrSuperColumn>();
-					cfmap.put(k, list);
-				}
-				for (Column co : columns) {
-					ColumnOrSuperColumn c = new ColumnOrSuperColumn();
-					c.column = co;
-					list.add(c);
-				}
-			} catch (Throwable ball) {
-				throw new RuntimeException(ball);
-			}
-		}
-		client.batch_insert(keyspace, column_family, cfmap, consistency_level);
-	}
+//	public static void store(Cassandra.Client client, String keyspace, String column_family, ConsistencyLevel consistency_level, Object... os) throws InvalidRequestException, UnavailableException, TimedOutException, TException {
+//		for (Object o : os) {
+//			Class<?> clazz = o.getClass();
+//			Field key = getKeyField(clazz);
+//			List<Column> columns = ObjectToColumn(o);
+//			if (key == null)
+//				throw new RuntimeException("No key defined in " + clazz.getCanonicalName());
+//			if (!key.isAccessible())
+//				key.setAccessible(true);
+//			// if (key.getType().equals(String.class))
+//			// throw new
+//			// RuntimeException("Due to limits of the current cassandra thrift api the key "
+//			// + getFieldFullName(key) + " has to be from type " +
+//			// String.class);
+//			try {
+//				Map<String, List<ColumnOrSuperColumn>> cfmap = new TreeMap<String, List<ColumnOrSuperColumn>>();
+//				String k;
+//				if (key.getType().equals(String.class))
+//					k = (String) key.get(o);
+//				else{
+//					k = ByteStringTranslator.make(bytes(o, key));
+//				}
+//				List<ColumnOrSuperColumn> list = cfmap.get(k);
+//				if (list == null) {
+//					list = new LinkedList<ColumnOrSuperColumn>();
+//					cfmap.put(column_family, list);
+//				}
+//				for (Column co : columns) {
+//					ColumnOrSuperColumn c = new ColumnOrSuperColumn();
+//					c.column = co;
+//					list.add(c);
+//				}
+//				client.batch_insert(keyspace, k, cfmap, consistency_level);
+//			} catch (Throwable ball) {
+//				throw new RuntimeException(ball);
+//			}
+//		}
+//	}
 
 	public static void store(Cassandra.Client client, String keyspace, String column_family, String super_column, ConsistencyLevel consistency_level, Object... os) throws InvalidRequestException, UnavailableException, TimedOutException, TException {
 		Map<String, List<ColumnOrSuperColumn>> cfmap = new TreeMap<String, List<ColumnOrSuperColumn>>();

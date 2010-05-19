@@ -15,8 +15,14 @@ public class SuperColumnObjectStore<T> implements ObjectStore<T> {
 	private final String keyspace;
 	private final String column_family;
 	private final String super_column;
+	private final boolean reversed;
 
 	public SuperColumnObjectStore(Cassandra.Client client, String keyspace, String column_family, String super_column, Class<T> type) {
+		this(client, keyspace, column_family, super_column, false, type);
+	}
+
+	public SuperColumnObjectStore(Cassandra.Client client, String keyspace, String column_family, String super_column, boolean reversed, Class<T> type) {
+		this.reversed = reversed;
 		this.client = client;
 		this.type = type;
 		this.keyspace = keyspace;
@@ -28,10 +34,10 @@ public class SuperColumnObjectStore<T> implements ObjectStore<T> {
 	public T load(byte[] key) {
 		return Store.load(client, keyspace, column_family, super_column, key, type);
 	}
-	
-	public void add(Object o) throws InvalidRequestException, UnavailableException, TimedOutException, TException{
-		Store.store(client, keyspace, column_family, ConsistencyLevel.ONE, o);
-	}
+
+//	public void add(Object o) throws InvalidRequestException, UnavailableException, TimedOutException, TException {
+//		Store.store(client, keyspace, column_family, ConsistencyLevel.ONE, o);
+//	}
 
 	@Override
 	public void store(T object) {
@@ -51,7 +57,7 @@ public class SuperColumnObjectStore<T> implements ObjectStore<T> {
 	@Override
 	public Iterator<T> iterator() {
 		try {
-			return new SuperColumnObjectIterator<T>(this.client, this.keyspace, this.column_family, this.super_column, this.type);
+			return new SuperColumnObjectIterator<T>(this.client, this.keyspace, this.column_family, this.super_column, this.reversed, this.type);
 		} catch (Throwable ball) {
 			throw new RuntimeException("Could not fetch an iterator for " + keyspace + "." + column_family + "['" + super_column + "']", ball);
 		}
