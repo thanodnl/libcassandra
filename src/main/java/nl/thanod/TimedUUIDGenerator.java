@@ -147,6 +147,6 @@ public class TimedUUIDGenerator {
 }
 
 //------------------------------
-// Code by: ThaNODnl
+// Code by: Nils 'ThaNODnl' Dijk
 // found on github.com/thanodnl
 //------------------------------
