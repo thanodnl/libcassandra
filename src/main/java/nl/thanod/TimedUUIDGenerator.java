@@ -145,3 +145,8 @@ public class TimedUUIDGenerator {
 		return m;
 	}
 }
+
+//------------------------------
+// Code by: ThaNODnl
+// found on github.com/thanodnl
+//------------------------------
