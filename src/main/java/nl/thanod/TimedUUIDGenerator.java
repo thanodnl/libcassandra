@@ -139,7 +139,7 @@ public class TimedUUIDGenerator {
 		m |= (long) (mac[0] & 0xFF) << 40;
 		m |= (long) (mac[1] & 0xFF) << 32;
 		m |= (long) (mac[2] & 0xFF) << 24;
-		m |= (long) (mac[3] & 0xFF) << 26;
+		m |= (long) (mac[3] & 0xFF) << 16;
 		m |= (long) (mac[4] & 0xFF) << 8;
 		m |= (long) (mac[5] & 0xFF) << 0;
 		return m;
